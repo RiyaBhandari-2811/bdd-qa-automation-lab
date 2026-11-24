@@ -147,23 +147,115 @@ Add to `package.json`:
 
 **Exercise 1**: Install Playwright and create your first test.
 
+<details>
+<summary>✅ Answer</summary>
+
+```bash
+# Step 1: Create project
+mkdir playwright-project
+cd playwright-project
+npm init -y
+
+# Step 2: Install Playwright
+npm install -D @playwright/test
+
+# Step 3: Install browsers
+npx playwright install
+
+# Step 4: Create first test
+# Create file: tests/first.spec.js
+```
+
+**tests/first.spec.js:**
+```javascript
+import { test, expect } from '@playwright/test';
+
+test('should load example website', async ({ page }) => {
+  await page.goto('https://example.com');
+  
+  expect(page.url()).toContain('example.com');
+  expect(await page.title()).toBeTruthy();
+});
+```
+
+**Step 5: Run test**
+```bash
+npx playwright test
+```
+
+</details>
+
 **Exercise 2**: Modify config to run only Chromium and Firefox.
 
+<details>
+<summary>✅ Answer</summary>
+
+```javascript
+// playwright.config.js
+import { defineConfig, devices } from '@playwright/test';
+
+export default defineConfig({
+  testDir: './tests',
+  fullyParallel: true,
+  
+  projects: [
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'] },
+    },
+  ],
+});
+```
+
+</details>
+
 **Exercise 3**: Create a test that navigates to your favorite website and prints the title.
+
+<details>
+<summary>✅ Answer</summary>
+
+```javascript
+test('Get website title', async ({ page }) => {
+  await page.goto('https://github.com');
+  
+  const title = await page.title();
+  console.log(`Website Title: ${title}`);
+  
+  expect(title).toContain('GitHub');
+});
+```
+
+</details>
 
 ---
 
 ## 🎤 Interview Questions
 
 1. **What command installs Playwright browsers?**
-   - `npx playwright install`
+   <details>
+   <summary>Answer</summary>
+   `npx playwright install` - Downloads Chromium, Firefox, and WebKit browsers (~300MB)
+   </details>
 
 2. **What is `playwright.config.js` used for?**
-   - Configure test settings like browsers, timeout, reporters, etc.
+   <details>
+   <summary>Answer</summary>
+   Configure test settings like browsers, timeout, reporters, baseURL, parallelization, retries, etc.
+   </details>
 
 3. **How do you run tests in headed mode?**
-   - `npx playwright test --headed`
+   <details>
+   <summary>Answer</summary>
+   `npx playwright test --headed` - Shows browser window while tests run
+   </details>
 
 4. **What is the default test directory?**
-   - `./tests` directory by default
+   <details>
+   <summary>Answer</summary>
+   `./tests` directory by default (configurable in playwright.config.js)
+   </details>
 

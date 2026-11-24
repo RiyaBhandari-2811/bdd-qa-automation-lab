@@ -220,23 +220,158 @@ test('Inspect emulation settings', async ({ page, browserName }) => {
 
 **Exercise 1**: Run a test in debug mode and step through execution.
 
+<details>
+<summary>✅ Answer</summary>
+
+```javascript
+// test.spec.js
+test('Debug mode example', async ({ page }) => {
+  // This test can be debugged interactively
+  
+  await page.goto('https://example.com');
+  
+  // Inspector will pause here when running in debug mode
+  await page.locator('#search').fill('test query');
+  
+  // Step through each action
+  await page.locator('#search-btn').click();
+  
+  // View element states and DOM
+  const results = page.locator('.search-result');
+  const count = await results.count();
+  
+  expect(count).toBeGreaterThan(0);
+});
+
+// Run in debug mode:
+// npx playwright test --debug
+// Or: PWDEBUG=1 npx playwright test
+// 
+// In debug mode:
+// - Code is highlighted with debugger paused
+// - Inspect page DOM and element states
+// - Step over, into, or out of actions
+// - Evaluate expressions in console
+```
+
+</details>
+
 **Exercise 2**: Enable tracing and view the trace file.
 
+<details>
+<summary>✅ Answer</summary>
+
+```javascript
+// playwright.config.js
+export default defineConfig({
+  use: {
+    trace: 'on-first-retry',  // Record trace on test failure
+    // or use 'on' to always record
+  },
+});
+
+// In test file:
+test('Trace enabled test', async ({ page, context }) => {
+  // Optionally start tracing manually
+  await context.tracing.start({ screenshots: true, snapshots: true });
+  
+  await page.goto('https://example.com');
+  await page.click('button');
+  await page.fill('input', 'data');
+  
+  // Stop and save trace
+  await context.tracing.stop({ path: 'trace.zip' });
+});
+
+// View trace:
+// npx playwright show-trace trace.zip
+// 
+// In trace viewer:
+// - Play through test execution
+// - View screenshots at each step
+// - Inspect DOM snapshots
+// - Review network requests
+// - Check browser console logs
+```
+
+</details>
+
 **Exercise 3**: Add logging and console capture to understand test execution.
+
+<details>
+<summary>✅ Answer</summary>
+
+```javascript
+test('Logging and console capture', async ({ page, context }) => {
+  // Capture console messages
+  page.on('console', msg => {
+    console.log(`Browser Console [${msg.type()}]: ${msg.text()}`);
+  });
+  
+  // Capture page errors
+  page.on('pageerror', err => {
+    console.error(`Page Error: ${err.message}`);
+  });
+  
+  // Capture request/response logs
+  page.on('request', req => {
+    console.log(`→ ${req.method()} ${req.url()}`);
+  });
+  
+  page.on('response', res => {
+    console.log(`← ${res.status()} ${res.url()}`);
+  });
+  
+  // Add custom logging
+  console.log('Test started');
+  
+  await page.goto('https://example.com');
+  console.log('Page loaded');
+  
+  const element = page.locator('#main-button');
+  console.log(`Element visible: ${await element.isVisible()}`);
+  
+  if (await element.isVisible()) {
+    console.log('Clicking button');
+    await element.click();
+    console.log('Button clicked');
+  }
+  
+  // Check browser console for client-side logs
+  const logs = [];
+  page.on('console', msg => logs.push(msg.text()));
+  
+  console.log('All console messages:', logs);
+});
+```
+
+</details>
 
 ---
 
 ## 🎤 Interview Questions
 
 1. **What is debug mode in Playwright?**
-   - Interactive debugging with step-by-step code execution
+   <details>
+   <summary>Answer</summary>
+   Interactive debugging mode where you can step through code execution and inspect element states in real-time
+   </details>
 
 2. **How do you view test execution trace?**
-   - Run `npx playwright show-trace trace.zip` to open trace viewer
+   <details>
+   <summary>Answer</summary>
+   Run `npx playwright show-trace trace.zip` to open trace viewer with execution timeline
+   </details>
 
 3. **What information is captured in trace?**
-   - Screenshots, DOM snapshots, network activity, browser logs
+   <details>
+   <summary>Answer</summary>
+   Screenshots, DOM snapshots, network requests/responses, browser console logs, and execution timeline
+   </details>
 
 4. **How do you debug a failing test?**
-   - Use --debug flag, add console logs, take screenshots, enable tracing
+   <details>
+   <summary>Answer</summary>
+   Use `--debug` flag for interactive debugging, enable tracing, add console logs, take screenshots, check browser events
+   </details>
 

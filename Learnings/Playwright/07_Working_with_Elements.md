@@ -142,23 +142,117 @@ test('Extract multiple values', async ({ page }) => {
 
 **Exercise 1**: Get all links on a page and extract their href attributes.
 
+<details>
+<summary>✅ Answer</summary>
+
+```javascript
+test('Extract all links', async ({ page }) => {
+  await page.goto('https://example.com');
+  
+  // Get all links
+  const links = await page.locator('a').evaluateAll(elements =>
+    elements.map(el => ({
+      text: el.textContent?.trim(),
+      href: el.href
+    }))
+  );
+  
+  console.log('All links on page:');
+  links.forEach(link => {
+    console.log(`- ${link.text}: ${link.href}`);
+  });
+  
+  // Verify at least one link
+  expect(links.length).toBeGreaterThan(0);
+});
+```
+
+</details>
+
 **Exercise 2**: Count how many buttons are on a page and filter only enabled ones.
 
+<details>
+<summary>✅ Answer</summary>
+
+```javascript
+test('Count and filter buttons', async ({ page }) => {
+  await page.goto('https://example.com');
+  
+  // Get total button count
+  const totalButtons = await page.locator('button').count();
+  console.log(`Total buttons: ${totalButtons}`);
+  
+  // Filter enabled buttons
+  const enabledButtons = await page.locator('button').evaluateAll(buttons =>
+    buttons.filter(btn => !btn.disabled)
+  );
+  
+  console.log(`Enabled buttons: ${enabledButtons.length}`);
+  console.log(`Disabled buttons: ${totalButtons - enabledButtons.length}`);
+  
+  // Verify count
+  expect(enabledButtons.length).toBeGreaterThan(0);
+});
+```
+
+</details>
+
 **Exercise 3**: Scroll to an element and verify its visibility.
+
+<details>
+<summary>✅ Answer</summary>
+
+```javascript
+test('Scroll and verify visibility', async ({ page }) => {
+  await page.goto('https://example.com');
+  
+  // Get element reference
+  const element = page.locator('#bottom-section');
+  
+  // Check initial visibility
+  const isVisible = await element.isVisible();
+  
+  if (!isVisible) {
+    // Scroll element into view
+    await element.scrollIntoViewIfNeeded();
+  }
+  
+  // Verify element is now visible
+  await expect(element).toBeVisible();
+  
+  // Get element position
+  const box = await element.boundingBox();
+  console.log(`Element position: ${box?.x}, ${box?.y}`);
+});
+```
+
+</details>
 
 ---
 
 ## 🎤 Interview Questions
 
 1. **What's the difference between `textContent()` and `innerHTML()`?**
-   - textContent returns plain text; innerHTML returns HTML string
+   <details>
+   <summary>Answer</summary>
+   `textContent()` returns plain text content only; `innerHTML()` returns HTML string with tags
+   </details>
 
 2. **How do you check if a button is enabled?**
-   - Use `isEnabled()` method on the button locator
+   <details>
+   <summary>Answer</summary>
+   Use `isEnabled()` method on the button locator (inverse is `isDisabled()`)
+   </details>
 
 3. **How do you iterate through multiple elements?**
-   - Get count with `count()` and loop using `nth(i)`
+   <details>
+   <summary>Answer</summary>
+   Get count with `count()` and loop using `nth(i)` to access each element
+   </details>
 
 4. **Can you evaluate custom JavaScript in Playwright?**
-   - Yes, using `evaluate()` and `evaluateAll()` methods
+   <details>
+   <summary>Answer</summary>
+   Yes, using `evaluate()` for single element and `evaluateAll()` for multiple elements to run custom JS
+   </details>
 

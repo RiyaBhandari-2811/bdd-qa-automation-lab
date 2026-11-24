@@ -195,23 +195,111 @@ test('Debug selectors', async ({ page }) => {
 
 **Exercise 1**: Write a complex XPath to find a button inside a specific modal.
 
+<details>
+<summary>✅ Answer</summary>
+
+```javascript
+test('Complex XPath selector', async ({ page }) => {
+  await page.goto('https://example.com');
+  
+  // Find button with text "Delete" inside a modal with class "danger-modal"
+  const deleteButton = page.locator("//div[@class='danger-modal']//button[contains(text(), 'Delete')]");
+  
+  // Or use XPath with specific attributes
+  const modalButton = page.locator(
+    "//div[contains(@class, 'modal') and contains(@class, 'active')]//button[@type='submit']"
+  );
+  
+  await expect(deleteButton).toBeVisible();
+  await deleteButton.click();
+});
+```
+
+</details>
+
 **Exercise 2**: Use role selectors to find disabled buttons only.
 
+<details>
+<summary>✅ Answer</summary>
+
+```javascript
+test('Find disabled buttons with role selector', async ({ page }) => {
+  await page.goto('https://example.com');
+  
+  // Find all buttons with disabled role/state
+  const disabledButtons = page.locator('button:disabled');
+  
+  // Or using role selector
+  const buttons = page.locator('role=button');
+  const disabledOnes = buttons.locator(':disabled');
+  
+  // Count disabled buttons
+  const count = await disabledOnes.count();
+  console.log(`Found ${count} disabled buttons`);
+  
+  // Verify they are not clickable
+  for (let i = 0; i < count; i++) {
+    const btn = disabledOnes.nth(i);
+    await expect(btn).toBeDisabled();
+  }
+});
+```
+
+</details>
+
 **Exercise 3**: Create a combined selector using multiple filters.
+
+<details>
+<summary>✅ Answer</summary>
+
+```javascript
+test('Combined selector with multiple filters', async ({ page }) => {
+  await page.goto('https://example.com');
+  
+  // Find specific product card
+  const productCard = page.locator('.product-card')
+    .filter({ hasText: 'Electronics' })
+    .filter({ has: page.locator('.rating:has-text("4.5")') });
+  
+  await expect(productCard).toBeVisible();
+  
+  // Or chain multiple conditions
+  const item = page.locator('div')
+    .filter({ hasNot: page.locator('.sold-out') })
+    .filter({ has: page.locator('price >> text=$100') })
+    .first();
+  
+  // Verify the filtered result
+  await expect(item).toHaveClass(/active/);\n});
+```
+
+</details>
 
 ---
 
 ## 🎤 Interview Questions
 
 1. **What are ARIA role selectors?**
-   - Selectors based on semantic HTML roles, most accessible and reliable
+   <details>
+   <summary>Answer</summary>
+   Selectors based on semantic HTML roles, most accessible and reliable way to find elements
+   </details>
 
 2. **What's the difference between XPath and CSS selectors?**
-   - XPath can traverse up and down; CSS traverses down only. XPath is slower.
+   <details>
+   <summary>Answer</summary>
+   XPath can traverse up and down the DOM; CSS traverses down only. XPath is slower but more flexible
+   </details>
 
 3. **Can you filter locators after selection?**
-   - Yes, use `filter()` method to narrow down selected elements
+   <details>
+   <summary>Answer</summary>
+   Yes, use `filter()` method to narrow down selected elements by text, attributes, or nested elements
+   </details>
 
 4. **What's the fastest way to find an element?**
-   - Use CSS selectors or role selectors with specific attributes
+   <details>
+   <summary>Answer</summary>
+   Use CSS selectors or role selectors with specific IDs or data-testid attributes
+   </details>
 

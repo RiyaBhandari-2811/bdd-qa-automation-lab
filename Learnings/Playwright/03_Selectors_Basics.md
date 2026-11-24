@@ -125,23 +125,92 @@ page.locator('.btn.btn-primary.btn-lg')      // Too many classes
 
 **Exercise 1**: Write 3 different selectors to find a button with text "Login".
 
+<details>
+<summary>✅ Answer</summary>
+
+```javascript
+// 1. CSS Selector
+page.locator('button:has-text("Login")')
+
+// 2. XPath Selector
+page.locator("//button[contains(text(), 'Login')]")
+
+// 3. Role Selector (Most Recommended)
+page.locator('role=button[name="Login"]')
+```
+
+</details>
+
 **Exercise 2**: Create selectors for email input using CSS, XPath, and role selectors.
 
+<details>
+<summary>✅ Answer</summary>
+
+```javascript
+// 1. CSS Selector
+page.locator('input[type="email"]')
+
+// 2. XPath Selector
+page.locator("//input[@type='email']")
+
+// 3. Role Selector
+page.locator('role=textbox[name="Email"]')
+
+// 4. Using label association (Best practice)
+page.locator('label:has-text("Email") >> ../input')
+```
+
+</details>
+
 **Exercise 3**: Find all buttons on a page and get their count.
+
+<details>
+<summary>✅ Answer</summary>
+
+```javascript
+test('Count buttons on page', async ({ page }) => {
+  await page.goto('https://example.com');
+  
+  const buttonCount = await page.locator('button').count();
+  console.log(`Total buttons: ${buttonCount}`);
+  
+  expect(buttonCount).toBeGreaterThan(0);
+  
+  // Iterate through each button
+  for (let i = 0; i < buttonCount; i++) {
+    const text = await page.locator('button').nth(i).textContent();
+    console.log(`Button ${i + 1}: ${text}`);
+  }
+});
+```
+
+</details>
 
 ---
 
 ## 🎤 Interview Questions
 
 1. **What is a selector in Playwright?**
-   - Method to identify and locate elements on a web page
+   <details>
+   <summary>Answer</summary>
+   Method to identify and locate elements on a web page. Can be CSS, XPath, role-based, or text-based.
+   </details>
 
 2. **Which selector type is most reliable?**
-   - Role selector as it's based on semantic HTML and accessibility
+   <details>
+   <summary>Answer</summary>
+   Role selector as it's based on semantic HTML and accessibility standards, making it resilient to DOM changes.
+   </details>
 
 3. **What's the difference between XPath and CSS selector?**
-   - XPath can traverse up and down the DOM, CSS is faster but only traverses down
+   <details>
+   <summary>Answer</summary>
+   XPath can traverse up and down the DOM (parent/ancestor/sibling), CSS only traverses down. XPath is slower but more flexible.
+   </details>
 
 4. **Can you use regular expressions in text selectors?**
-   - Yes, use `text=/pattern/flags` syntax
+   <details>
+   <summary>Answer</summary>
+   Yes, use `text=/pattern/flags` syntax (e.g., `text=/login/i` for case-insensitive)
+   </details>
 

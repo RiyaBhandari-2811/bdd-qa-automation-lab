@@ -280,23 +280,203 @@ mv test-results/* "$artifact_path/"
 
 **Exercise 1**: Create a GitHub Actions workflow for Playwright tests.
 
+<details>
+<summary>✅ Answer</summary>
+
+```yaml
+# .github/workflows/playwright.yml
+name: Playwright Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+      
+      - name: Run Playwright tests
+        run: npx playwright test
+      
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+      
+      - name: Publish test report
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Playwright Test Report
+          path: 'test-results/*.xml'
+          reporter: 'java-junit'
+```
+
+</details>
+
 **Exercise 2**: Set up Docker container to run Playwright tests.
 
+<details>
+<summary>✅ Answer</summary>
+
+```dockerfile
+# Dockerfile
+FROM mcr.microsoft.com/playwright:v1.40.0-focal
+
+# Set working directory
+WORKDIR /app
+
+# Copy project files
+COPY package*.json ./
+COPY . .
+
+# Install dependencies
+RUN npm ci
+RUN npx playwright install
+
+# Run tests
+CMD ["npx", "playwright", "test"]
+
+# Optional: Use as base for custom setup
+# FROM mcr.microsoft.com/playwright:v1.40.0-focal as builder
+# WORKDIR /app
+# COPY . .
+# RUN npm ci
+# RUN npm run build
+# 
+# FROM mcr.microsoft.com/playwright:v1.40.0-focal
+# WORKDIR /app
+# COPY --from=builder /app .
+# CMD ["npx", "playwright", "test"]
+```
+
+**Build and run:**
+```bash
+# Build image
+docker build -t playwright-tests .
+
+# Run tests in container
+docker run --rm playwright-tests
+
+# Run with volume mount
+docker run --rm -v $(pwd):/app playwright-tests
+```
+
+</details>
+
 **Exercise 3**: Configure parallel test execution in CI pipeline.
+
+<details>
+<summary>✅ Answer</summary>
+
+```javascript
+// playwright.config.js
+export default defineConfig({
+  // Run tests in parallel (more workers in CI)
+  fullyParallel: true,
+  workers: process.env.CI ? 4 : 2,
+  
+  // Other CI optimizations
+  retries: process.env.CI ? 2 : 0,
+  timeout: 30000,
+  
+  use: {
+    trace: 'on-first-retry',
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
+  },
+  
+  projects: [
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'] },
+    },
+  ],
+});
+```
+
+**GitHub Actions with sharding:**
+```yaml
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        shard: [1, 2, 3, 4]  # 4 shards for parallel execution
+    
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - run: npm ci
+      - run: npx playwright install --with-deps
+      
+      - name: Run tests (shard ${{ matrix.shard }}/4)
+        run: npx playwright test --shard=${{ matrix.shard }}/4
+      
+      - name: Upload blob report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: blob-report-${{ matrix.shard }}
+          path: blob-report
+          retention-days: 1
+```
+
+</details>
 
 ---
 
 ## 🎤 Interview Questions
 
 1. **What CI services support Playwright?**
-   - GitHub Actions, GitLab CI, Jenkins, CircleCI, Azure Pipelines, etc.
+   <details>
+   <summary>Answer</summary>
+   GitHub Actions, GitLab CI, Jenkins, CircleCI, Azure Pipelines, Travis CI, and others
+   </details>
 
 2. **How do you handle parallel tests in CI?**
-   - Set workers and use sharding to distribute tests
+   <details>
+   <summary>Answer</summary>
+   Set `fullyParallel: true` and use sharding with `--shard=X/N` to distribute tests across workers
+   </details>
 
 3. **What should you do with test results in CI?**
-   - Upload artifacts (reports, videos, screenshots) for review
+   <details>
+   <summary>Answer</summary>
+   Upload artifacts (reports, videos, screenshots) and optionally publish results to dashboard for visibility
+   </details>
 
 4. **How many retries should you set in CI?**
-   - Usually 2-3 for handling flakiness, but address root cause
+   <details>
+   <summary>Answer</summary>
+   Usually 2-3 to handle transient flakiness, but should investigate and fix root cause of failures
+   </details>
 

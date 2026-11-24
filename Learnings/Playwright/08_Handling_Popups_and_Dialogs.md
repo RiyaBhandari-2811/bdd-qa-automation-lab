@@ -155,23 +155,119 @@ test('Handle beforeunload', async ({ page }) => {
 
 **Exercise 1**: Create a test that handles an alert dialog showing a message.
 
+<details>
+<summary>✅ Answer</summary>
+
+```javascript
+test('Handle alert dialog', async ({ page }) => {
+  let alertMessage = '';
+  
+  // Listen for alert
+  page.once('dialog', dialog => {
+    alertMessage = dialog.message();
+    console.log(`Alert: ${alertMessage}`);
+    
+    // Accept alert (click OK)
+    dialog.accept();
+  });
+  
+  // Navigate to page that triggers alert
+  await page.goto('https://example.com/alert-page');
+  
+  // Click to trigger alert
+  await page.click('#showAlert');
+  
+  // Verify alert was shown
+  expect(alertMessage).toContain('expected message');
+});
+```
+
+</details>
+
 **Exercise 2**: Write a test for a confirm dialog that dismisses it and verifies the result.
 
+<details>
+<summary>✅ Answer</summary>
+
+```javascript
+test('Handle confirm dialog - dismiss', async ({ page }) => {
+  page.once('dialog', dialog => {
+    expect(dialog.type()).toBe('confirm');
+    expect(dialog.message()).toContain('Are you sure');
+    
+    // Dismiss (click Cancel)
+    dialog.dismiss();
+  });
+  
+  // Navigate to confirm dialog
+  await page.goto('https://example.com/confirm');
+  
+  // Trigger confirm dialog
+  await page.click('#deleteBtn');
+  
+  // Verify item was not deleted
+  await expect(page.locator('text=Item deleted')).not.toBeVisible();
+  await expect(page.locator('.item')).toBeVisible();
+});
+```
+
+</details>
+
 **Exercise 3**: Create a test that opens a popup window and fills a form in it.
+
+<details>
+<summary>✅ Answer</summary>
+
+```javascript
+test('Handle popup window', async ({ context, page }) => {
+  // Start waiting for popup before triggering it
+  const [popup] = await Promise.all([
+    context.waitForEvent('page'),
+    page.click('#openPopup')
+  ]);
+  
+  // Interact with popup
+  await popup.locator('#popupEmail').fill('popup@example.com');
+  await popup.locator('#popupMessage').fill('Message from popup');
+  
+  // Submit form in popup
+  await popup.locator('button[type="submit"]').click();
+  
+  // Verify popup action
+  await expect(popup.locator('.success')).toBeVisible();
+  
+  // Close popup
+  await popup.close();
+});
+```
+
+</details>
 
 ---
 
 ## 🎤 Interview Questions
 
 1. **How do you handle a JavaScript alert in Playwright?**
-   - Use `page.once('dialog', dialog => dialog.accept())`
+   <details>
+   <summary>Answer</summary>
+   Use `page.once('dialog', dialog => dialog.accept())` to listen and handle the alert
+   </details>
 
 2. **What's the difference between `accept()` and `dismiss()`?**
-   - accept() clicks OK, dismiss() clicks Cancel
+   <details>
+   <summary>Answer</summary>
+   `accept()` clicks OK/Yes, `dismiss()` clicks Cancel/No button on the dialog
+   </details>
 
 3. **How do you handle a file upload dialog?**
-   - Use `waitForEvent('filechooser')` and `setFiles()`
+   <details>
+   <summary>Answer</summary>
+   Use `waitForEvent('filechooser')` to listen, then `setFiles()` to upload files
+   </details>
 
 4. **Can you interact with popup windows?**
-   - Yes, use `context.waitForEvent('page')` to get popup reference
+   <details>
+   <summary>Answer</summary>
+   Yes, use `context.waitForEvent('page')` to get popup reference, then interact with it
+   </details>
 

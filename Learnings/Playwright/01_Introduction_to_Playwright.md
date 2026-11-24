@@ -64,21 +64,56 @@ Playwright is an **open-source automation framework** developed by Microsoft for
 
 **Exercise 1**: Explain why Playwright is better for multi-browser testing than Selenium.
 
+<details>
+<summary>✅ Answer</summary>
+
+Playwright is better because:
+- **Single API for multiple browsers**: Write once, test on Chromium, Firefox, WebKit without code changes
+- **Built-in auto-wait**: Handles asynchronous operations automatically, reducing flaky tests
+- **Modern architecture**: Designed for modern SPAs and async web apps
+- **Better performance**: Faster execution than Selenium
+- **Network interception**: Native support for mocking APIs and network control
+- **Multiple languages**: Built-in support for JS/TS, Python, Java, .NET
+- **True multi-browser**: Not just remoting but actual browser engines
+
+</details>
+
 **Exercise 2**: List 3 scenarios where you'd use Playwright in your project.
+
+<details>
+<summary>✅ Answer</summary>
+
+1. **E2E Testing**: Testing complete user workflows (login → browse → checkout → logout) across all browsers
+2. **Visual Regression Testing**: Taking screenshots of UI components and comparing with baselines to catch unintended visual changes
+3. **Mobile & Responsive Testing**: Emulating mobile devices (iPhone, Android) to verify responsive design without physical devices
+
+</details>
 
 ---
 
 ## 🎤 Interview Questions
 
 1. **What is Playwright and what are its main advantages?**
-   - Open-source automation framework by Microsoft supporting multiple browsers and languages
+   <details>
+   <summary>Answer</summary>
+   Open-source automation framework by Microsoft supporting multiple browsers and languages with built-in auto-wait, network interception, and mobile emulation.
+   </details>
 
 2. **What browsers does Playwright support?**
-   - Chromium, Firefox, WebKit (Safari)
+   <details>
+   <summary>Answer</summary>
+   Chromium, Firefox, WebKit (Safari)
+   </details>
 
 3. **Can you use Playwright for API testing?**
-   - Yes, via APIRequestContext, can test backend services
+   <details>
+   <summary>Answer</summary>
+   Yes, via APIRequestContext, can test backend services without UI automation.
+   </details>
 
 4. **Is Playwright faster than Selenium?**
-   - Yes, Playwright is significantly faster with better handling of modern web apps
+   <details>
+   <summary>Answer</summary>
+   Yes, Playwright is significantly faster with better handling of modern web apps due to modern architecture and parallel execution capabilities.
+   </details>
 

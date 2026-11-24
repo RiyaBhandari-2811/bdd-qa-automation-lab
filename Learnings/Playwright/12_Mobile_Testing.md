@@ -209,23 +209,112 @@ test('Slow network conditions', async ({ browser }) => {
 
 **Exercise 1**: Create a test using iPhone 12 device emulation.
 
+<details>
+<summary>✅ Answer</summary>
+
+```javascript
+import { devices } from '@playwright/test';
+
+test('iPhone 12 test', async ({ browser }) => {
+  const context = await browser.newContext({
+    ...devices['iPhone 12'],
+  });
+  const page = await context.newPage();
+  await page.goto('https://example.com');
+  await expect(page.locator('.mobile-menu')).toBeVisible();
+  await context.close();
+});
+```
+
+</details>
+
 **Exercise 2**: Test responsive design across desktop, tablet, and mobile viewports.
 
+<details>
+<summary>✅ Answer</summary>
+
+```javascript
+import { devices } from '@playwright/test';
+
+test.describe('Responsive Design', () => {
+  const configs = [
+    { name: 'Desktop', viewport: { width: 1920, height: 1080 } },
+    { name: 'iPad', ...devices['iPad Pro'] },
+    { name: 'Mobile', ...devices['iPhone 12'] },
+  ];
+  
+  configs.forEach(config => {
+    test(`Layout on ${config.name}`, async ({ browser }) => {
+      const context = await browser.newContext(config);
+      const page = await context.newPage();
+      await page.goto('https://example.com');
+      await expect(page.locator('.main-content')).toBeVisible();
+      await context.close();
+    });
+  });
+});
+```
+
+</details>
+
 **Exercise 3**: Enable geolocation and test location-based features.
+
+<details>
+<summary>✅ Answer</summary>
+
+```javascript
+import { devices } from '@playwright/test';
+
+test('Geolocation feature', async ({ browser }) => {
+  const context = await browser.newContext({
+    ...devices['iPhone 12'],
+    geolocation: { latitude: 37.7749, longitude: -122.4194 },
+    permissions: ['geolocation'],
+  });
+  const page = await context.newPage();
+  await page.goto('https://example.com/nearby');
+  const location = await page.evaluate(() => {
+    return new Promise((resolve) => {
+      navigator.geolocation.getCurrentPosition((position) => {
+        resolve({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+      });
+    });
+  });
+  expect(location.latitude).toBeCloseTo(37.7749, 2);
+  await context.close();
+});
+```
+
+</details>
 
 ---
 
 ## 🎤 Interview Questions
 
 1. **What is device emulation in Playwright?**
-   - Simulating mobile device capabilities without actual device
+   <details>
+   <summary>Answer</summary>
+   Simulating mobile device capabilities without actual device hardware
+   </details>
 
 2. **How do you test on multiple devices?**
-   - Define multiple projects in config with different device profiles
+   <details>
+   <summary>Answer</summary>
+   Define multiple projects in playwright.config.js with different device profiles
+   </details>
 
 3. **What are common device profiles available?**
-   - iPhone, Pixel, Galaxy, iPad, etc.
+   <details>
+   <summary>Answer</summary>
+   iPhone 12, iPhone 13, Pixel 5, Galaxy S9+, iPad Pro, iPad Mini, and many more
+   </details>
 
 4. **Can you override specific device settings?**
-   - Yes, spread device config and override properties like geolocation, viewport
+   <details>
+   <summary>Answer</summary>
+   Yes, spread device config and override properties like geolocation, viewport
+   </details>
 
