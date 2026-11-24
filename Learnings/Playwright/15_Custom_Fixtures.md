@@ -217,23 +217,181 @@ export const test = base.extend({
 
 **Exercise 1**: Create a custom fixture that sets up a database connection.
 
+<details>
+<summary>✅ Answer</summary>
+
+```javascript
+// fixtures.ts
+import { test as base } from '@playwright/test';
+import Database from 'sqlite3';
+
+type Fixtures = {
+  db: Database.Database;
+};
+
+export const test = base.extend<Fixtures>({
+  db: async ({}, use) => {
+    // Setup - create and open database
+    const db = new Database.Database(':memory:');
+    
+    db.run(`
+      CREATE TABLE users (
+        id INTEGER PRIMARY KEY,
+        email TEXT UNIQUE,
+        name TEXT
+      )
+    `);
+    
+    db.run(`
+      INSERT INTO users (email, name) VALUES
+      ('user1@test.com', 'User One'),
+      ('user2@test.com', 'User Two')
+    `);
+    
+    // Provide database to test
+    await use(db);
+    
+    // Teardown - close database
+    db.close();
+  },
+});
+
+export { expect } from '@playwright/test';
+
+// In test:
+test('Use database fixture', async ({ db }) => {
+  db.all('SELECT * FROM users', (err, rows) => {
+    expect(rows.length).toBe(2);
+  });
+});
+```
+
+</details>
+
 **Exercise 2**: Create an authenticated page fixture that logs in before each test.
 
+<details>
+<summary>✅ Answer</summary>
+
+```javascript
+// fixtures.ts
+import { test as base, expect } from '@playwright/test';
+
+type Fixtures = {
+  authenticatedPage: Page;
+};
+
+export const test = base.extend<Fixtures>({
+  authenticatedPage: async ({ page }, use) => {
+    // Setup - login before test
+    await page.goto('https://example.com/login');
+    await page.fill('#email', 'testuser@example.com');
+    await page.fill('#password', 'SecurePass123!');
+    await page.click('button[type="submit"]');
+    
+    // Wait for authentication
+    await page.waitForURL('**/dashboard');
+    
+    // Provide authenticated page to test
+    await use(page);
+    
+    // Teardown - logout
+    await page.click('.user-menu');
+    await page.click('button:has-text("Logout")');
+  },
+});
+
+// In test:
+test('Use authenticated page', async ({ authenticatedPage }) => {
+  // Already logged in and on dashboard
+  await expect(authenticatedPage.locator('.welcome-message')).toBeVisible();
+  await expect(authenticatedPage).toHaveURL('**/dashboard');
+});
+```
+
+</details>
+
 **Exercise 3**: Create a parameterized fixture with test user credentials.
+
+<details>
+<summary>✅ Answer</summary>
+
+```javascript
+// fixtures.ts
+import { test as base } from '@playwright/test';
+
+type Fixtures = {
+  testUser: { email: string; password: string };
+};
+
+export const test = base.extend<Fixtures>({
+  testUser: async ({}, use) => {
+    // Define different users for parameterization
+    const users = {
+      admin: {
+        email: 'admin@example.com',
+        password: 'AdminPass123!',
+      },
+      regular: {
+        email: 'user@example.com',
+        password: 'UserPass123!',
+      },
+      guest: {
+        email: 'guest@example.com',
+        password: 'GuestPass123!',
+      },
+    };
+    
+    // Use specific user (can be parameterized)
+    const userRole = process.env.TEST_USER || 'regular';
+    const testUser = users[userRole];
+    
+    await use(testUser);
+  },
+});
+
+// In test:
+test('Login with parameterized user', async ({ page, testUser }) => {
+  await page.goto('https://example.com/login');
+  await page.fill('#email', testUser.email);
+  await page.fill('#password', testUser.password);
+  await page.click('button[type="submit"]');
+  
+  await page.waitForURL('**/dashboard');
+});
+
+// Run with different users:
+// npx playwright test  (uses 'regular' user)
+// TEST_USER=admin npx playwright test  (uses 'admin')
+```
+
+</details>
 
 ---
 
 ## 🎤 Interview Questions
 
 1. **What is a fixture in Playwright?**
-   - Reusable setup/teardown logic shared across tests
+   <details>
+   <summary>Answer</summary>
+   Reusable setup and teardown logic that runs before and after tests for data preparation and cleanup
+   </details>
 
 2. **What are fixture scopes?**
-   - test (new each test), worker (shared in worker), suite (all tests)
+   <details>
+   <summary>Answer</summary>
+   test (new each test), worker (shared within worker), suite (shared per test file), session (global)
+   </details>
 
 3. **How do you create a custom fixture?**
-   - Use `test.extend({ name: async ({}, use) => { ... } })`
+   <details>
+   <summary>Answer</summary>
+   Use `test.extend({ fixtureName: async ({}, use) => { setup; await use(value); teardown; } })`
+   </details>
 
 4. **Can fixtures depend on other fixtures?**
-   - Yes, include them as parameters: `async ({ otherFixture }, use)`
+   <details>
+   <summary>Answer</summary>
+   Yes, include them as parameters: `async ({ page, anotherFixture }, use) => { ... }`
+   </details>
 

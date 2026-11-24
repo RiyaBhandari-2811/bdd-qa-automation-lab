@@ -154,26 +154,121 @@ await page.locator('#btn').click();  // Auto-waits
 
 **Exercise 1**: Create a test that clicks a "Load More" button and waits for new items to appear.
 
+<details>
+<summary>✅ Answer</summary>
+
+```javascript
+test('Load more with dynamic content', async ({ page }) => {
+  await page.goto('https://example.com/items');
+  
+  // Count initial items
+  const initialCount = await page.locator('.item').count();
+  
+  // Click load more button
+  await page.locator('button:has-text("Load More")').click();
+  
+  // Wait for new items to appear
+  await page.locator('.item').nth(initialCount).waitFor({ state: 'visible' });
+  
+  // Verify items increased
+  const finalCount = await page.locator('.item').count();
+  expect(finalCount).toBeGreaterThan(initialCount);
+});
+```
+
+</details>
+
 **Exercise 2**: Write a test that navigates to a page and waits for an API call to complete.
 
+<details>
+<summary>✅ Answer</summary>
+
+```javascript
+test('Wait for API response', async ({ page }) => {
+  // Start waiting for API response
+  const apiResponsePromise = page.waitForResponse(response => 
+    response.url().includes('/api/users') && response.status() === 200
+  );
+  
+  // Navigate to page (triggers API call)
+  await page.goto('https://example.com/users');
+  
+  // Wait for response
+  const response = await apiResponsePromise;
+  const data = await response.json();
+  
+  // Verify data
+  expect(data.length).toBeGreaterThan(0);
+  
+  // Verify data displayed on page
+  await expect(page.locator(`text=${data[0].name}`)).toBeVisible();
+});
+```
+
+</details>
+
 **Exercise 3**: Create a test with multiple async operations and proper wait handling.
+
+<details>
+<summary>✅ Answer</summary>
+
+```javascript
+test('Multiple async operations', async ({ page }) => {
+  await page.goto('https://example.com/dashboard');
+  
+  // Wait 1: Wait for dashboard to load
+  await page.locator('.dashboard').waitFor({ state: 'visible' });
+  
+  // Click to trigger data fetch
+  await page.locator('#loadData').click();
+  
+  // Wait 2: Wait for data table to appear
+  await page.locator('.data-table').waitFor({ state: 'visible' });
+  
+  // Click export button
+  await page.locator('#exportBtn').click();
+  
+  // Wait 3: Wait for export success message
+  await page.locator('.success-toast').waitFor({ state: 'visible' });
+  
+  // Verify final state
+  expect(page.url()).toContain('/dashboard');
+});
+```
+
+</details>
 
 ---
 
 ## 🎤 Interview Questions
 
 1. **What is Playwright's auto-wait feature?**
-   - Automatically waits for elements to be ready before interactions (30s default)
+   <details>
+   <summary>Answer</summary>
+   Automatically waits for elements to be ready before interactions (30s default timeout). Prevents flaky tests.
+   </details>
 
 2. **What's the difference between `visible` and `attached` states?**
-   - Visible means element is in DOM AND displayed; attached means just in DOM
+   <details>
+   <summary>Answer</summary>
+   Visible means element is in DOM AND displayed on screen; attached means just in DOM (may be hidden)
+   </details>
 
 3. **How do you wait for an element to disappear?**
-   - `waitFor({ state: 'hidden' })` on the element locator
+   <details>
+   <summary>Answer</summary>
+   Use `waitFor({ state: 'hidden' })` on the element locator
+   </details>
 
 4. **Should you use `page.waitForTimeout()` in tests?**
-   - No, it's unreliable. Use specific waitFor methods instead
+   <details>
+   <summary>Answer</summary>
+   No, it's unreliable and anti-pattern. Use specific waitFor methods like `waitFor()`, `waitForNavigation()`, `waitForResponse()`
+   </details>
 
 5. **How do you wait for an API call in Playwright?**
-   - Use `waitForResponse()` to wait for specific network response
+   <details>
+   <summary>Answer</summary>
+   Use `waitForResponse()` to wait for specific network response with matching URL and status
+   </details>
 

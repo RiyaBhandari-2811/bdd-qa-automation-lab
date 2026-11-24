@@ -194,23 +194,138 @@ export default defineConfig({
 
 **Exercise 1**: Measure page load time for a website.
 
+<details>
+<summary>✅ Answer</summary>
+
+```javascript
+test('Measure page load time', async ({ page }) => {
+  const startTime = Date.now();
+  
+  // Navigate and wait for load
+  await page.goto('https://example.com', { waitUntil: 'networkidle' });
+  
+  const loadTime = Date.now() - startTime;
+  console.log(`Page load time: ${loadTime}ms`);
+  
+  // Get detailed performance metrics
+  const perfMetrics = await page.evaluate(() => {
+    const navigation = performance.getEntriesByType('navigation')[0];
+    return {
+      domContentLoaded: navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart,
+      loadComplete: navigation.loadEventEnd - navigation.loadEventStart,
+      totalTime: navigation.loadEventEnd - navigation.fetchStart,
+    };
+  });
+  
+  console.log('Performance Metrics:', perfMetrics);
+  
+  // Assert load time is acceptable
+  expect(loadTime).toBeLessThan(5000); // Should load in under 5 seconds
+});
+```
+
+</details>
+
 **Exercise 2**: Configure parallel test execution and run tests.
 
+<details>
+<summary>✅ Answer</summary>
+
+```javascript
+// playwright.config.js
+export default defineConfig({
+  // Run tests in parallel (default is 4 workers)
+  fullyParallel: true,
+  workers: process.env.CI ? 1 : 4,
+  
+  // Other optimizations
+  retries: process.env.CI ? 2 : 0,
+  timeout: 30000,
+  
+  use: {
+    // Reuse browser between tests for speed
+    trace: 'on-first-retry',
+    screenshot: 'only-on-failure',
+  },
+  
+  projects: [
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
+  ],
+});
+
+// Run tests
+// npx playwright test  (uses default 4 workers)
+// npx playwright test --workers=8  (use 8 workers)
+```
+
+</details>
+
 **Exercise 3**: Compare selector performance for finding elements.
+
+<details>
+<summary>✅ Answer</summary>
+
+```javascript
+test('Compare selector performance', async ({ page }) => {
+  await page.goto('https://example.com');
+  
+  const selectors = {
+    'CSS ID': '#user-button',
+    'CSS Class': '.primary-button',
+    'XPath': "//button[@type='submit']",
+    'Role': "role=button[name='Submit']",
+    'Text': "button:has-text('Submit')",
+  };
+  
+  for (const [name, selector] of Object.entries(selectors)) {
+    const startTime = performance.now();
+    
+    for (let i = 0; i < 100; i++) {
+      try {
+        await page.locator(selector).count();
+      } catch (e) {
+        // Selector not found
+      }
+    }
+    
+    const endTime = performance.now();
+    const avgTime = (endTime - startTime) / 100;
+    
+    console.log(`${name}: ${avgTime.toFixed(2)}ms per query`);
+  }
+});
+```
+
+</details>
 
 ---
 
 ## 🎤 Interview Questions
 
 1. **What is `fullyParallel` in Playwright config?**
-   - Enables all tests to run in parallel across multiple workers
+   <details>
+   <summary>Answer</summary>
+   Enables all tests to run in parallel across multiple workers instead of sequentially per file
+   </details>
 
 2. **How do you measure page performance?**
-   - Use `performance.getEntriesByType('navigation')` or 'resource'
+   <details>
+   <summary>Answer</summary>
+   Use `performance.getEntriesByType('navigation')` for page metrics or `performance.getEntriesByType('resource')` for resource timing
+   </details>
 
 3. **Which selector type is fastest?**
-   - Attribute selectors and role selectors with specific names
+   <details>
+   <summary>Answer</summary>
+   Attribute selectors with IDs and role selectors, as they're most specific and don't require DOM traversal
+   </details>
 
 4. **How many workers should you use?**
-   - Based on CPU cores; default auto-detects optimal number
+   <details>
+   <summary>Answer</summary>
+   Based on CPU cores; default auto-detects optimal number. Use fewer (1-2) in CI for stability
+   </details>
 

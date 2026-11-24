@@ -234,23 +234,143 @@ test('Handle API errors', async ({ request }) => {
 
 **Exercise 1**: Test a public API with GET and POST requests.
 
+<details>
+<summary>✅ Answer</summary>
+
+```javascript
+test('API GET and POST requests', async ({ request }) => {
+  // GET request
+  const listResponse = await request.get('https://api.example.com/users');
+  expect(listResponse.ok()).toBeTruthy();
+  
+  const users = await listResponse.json();
+  expect(Array.isArray(users)).toBeTruthy();
+  
+  // POST request
+  const newUserResponse = await request.post('https://api.example.com/users', {
+    data: {
+      name: 'John Doe',
+      email: 'john@example.com',
+      role: 'user',
+    },
+  });
+  
+  expect(newUserResponse.ok()).toBeTruthy();
+  expect(newUserResponse.status()).toBe(201);
+  
+  const newUser = await newUserResponse.json();
+  expect(newUser.id).toBeDefined();
+  expect(newUser.email).toBe('john@example.com');
+});
+```
+
+</details>
+
 **Exercise 2**: Create a user via API and verify via UI.
 
+<details>
+<summary>✅ Answer</summary>
+
+```javascript
+test('Create user via API and verify in UI', async ({ page, request }) => {
+  // Create user via API
+  const createResponse = await request.post('https://api.example.com/users', {
+    data: {
+      name: 'Test User',
+      email: 'testuser@example.com',
+      password: 'SecurePass123!',
+    },
+  });
+  
+  const user = await createResponse.json();
+  const userId = user.id;
+  
+  // Verify user exists via UI
+  await page.goto('https://example.com/admin/users');
+  
+  // Search for the user
+  await page.fill('#search', 'testuser@example.com');
+  await page.click('button:has-text("Search")');
+  
+  // Verify user appears in list
+  const userRow = page.locator(`text=${user.name}`);
+  await expect(userRow).toBeVisible();
+  
+  // Verify user details
+  await userRow.click();
+  await expect(page.locator(`text=${user.email}`)).toBeVisible();
+});
+```
+
+</details>
+
 **Exercise 3**: Test error handling for invalid API requests.
+
+<details>
+<summary>✅ Answer</summary>
+
+```javascript
+test('API error handling', async ({ request }) => {
+  // Test invalid email
+  const invalidResponse = await request.post('https://api.example.com/users', {
+    data: {
+      name: 'Invalid User',
+      email: 'not-an-email',
+      password: 'pass123',
+    },
+  });
+  
+  expect(invalidResponse.status()).toBe(400);
+  const errorData = await invalidResponse.json();
+  expect(errorData.error).toContain('Invalid email');
+  
+  // Test missing required field
+  const missingResponse = await request.post('https://api.example.com/users', {
+    data: {
+      name: 'No Email User',
+      // Missing email
+    },
+  });
+  
+  expect(missingResponse.status()).toBe(400);
+  
+  // Test not found
+  const notFoundResponse = await request.get('https://api.example.com/users/99999');
+  expect(notFoundResponse.status()).toBe(404);
+  
+  // Test unauthorized
+  const unAuthResponse = await request.delete('https://api.example.com/users/123');
+  expect(unAuthResponse.status()).toBe(401);
+});
+```
+
+</details>
 
 ---
 
 ## 🎤 Interview Questions
 
 1. **What is APIRequestContext?**
-   - Playwright's built-in API for testing REST endpoints
+   <details>
+   <summary>Answer</summary>
+   Playwright's built-in fixture for testing REST endpoints without needing external HTTP libraries
+   </details>
 
 2. **Can you use same authentication for API and UI?**
-   - Yes, can share tokens and headers between API and browser contexts
+   <details>
+   <summary>Answer</summary>
+   Yes, can share tokens and headers between API requests and browser contexts for seamless testing
+   </details>
 
 3. **What's the benefit of setup via API instead of UI?**
-   - Much faster, more reliable, reduces test maintenance
+   <details>
+   <summary>Answer</summary>
+   Much faster, more reliable, doesn't depend on UI implementation, reduces test maintenance
+   </details>
 
 4. **How do you handle different response formats?**
-   - Use `response.json()`, `response.text()`, `response.body()` methods
+   <details>
+   <summary>Answer</summary>
+   Use `response.json()` for JSON, `response.text()` for text, `response.body()` for binary data
+   </details>
 

@@ -177,23 +177,134 @@ test('Wait for API call', async ({ page }) => {
 
 **Exercise 1**: Mock an API endpoint and verify the mocked data displays on page.
 
+<details>
+<summary>✅ Answer</summary>
+
+```javascript
+test('Mock API response', async ({ page }) => {
+  // Mock the API
+  await page.route('**/api/users', async route => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        { id: 1, name: 'John Doe', email: 'john@example.com' },
+        { id: 2, name: 'Jane Smith', email: 'jane@example.com' }
+      ])
+    });
+  });
+  
+  // Navigate to page
+  await page.goto('https://example.com/users');
+  
+  // Verify mocked data is displayed
+  await expect(page.locator('text=John Doe')).toBeVisible();
+  await expect(page.locator('text=Jane Smith')).toBeVisible();
+});
+```
+
+</details>
+
 **Exercise 2**: Abort image loading and verify alt text is shown.
 
+<details>
+<summary>✅ Answer</summary>
+
+```javascript
+test('Abort images and verify fallback', async ({ page }) => {
+  // Abort all image requests
+  await page.route('**/*.png', route => route.abort());
+  await page.route('**/*.jpg', route => route.abort());
+  await page.route('**/*.jpeg', route => route.abort());
+  
+  // Navigate to page with images
+  await page.goto('https://example.com');
+  
+  // Verify alt text is displayed instead
+  const images = await page.locator('img').evaluateAll(imgs =>
+    imgs.map(img => ({ alt: img.alt, src: img.src }))
+  );
+  
+  images.forEach(img => {
+    console.log(`Image: ${img.alt} (${img.src})`);
+  });
+  
+  // Verify at least some alt text exists
+  expect(images.some(img => img.alt.length > 0)).toBeTruthy();
+});
+```
+
+</details>
+
 **Exercise 3**: Monitor all network requests and responses on a page.
+
+<details>
+<summary>✅ Answer</summary>
+
+```javascript
+test('Monitor network activity', async ({ page }) => {
+  const requests = [];
+  const responses = [];
+  
+  // Track all requests
+  page.on('request', request => {
+    requests.push({
+      url: request.url(),
+      method: request.method(),
+      time: new Date()
+    });
+  });
+  
+  // Track all responses
+  page.on('response', response => {
+    responses.push({
+      url: response.url(),
+      status: response.status(),
+      time: new Date()
+    });
+  });
+  
+  // Navigate page
+  await page.goto('https://example.com');
+  
+  // Log summary
+  console.log(`Total requests: ${requests.length}`);
+  console.log(`Total responses: ${responses.length}`);
+  
+  // Log failed requests
+  const failedRequests = responses.filter(r => r.status >= 400);
+  console.log(`Failed requests: ${failedRequests.length}`);
+  failedRequests.forEach(r => console.log(`- ${r.url}: ${r.status}`));
+});
+```
+
+</details>
 
 ---
 
 ## 🎤 Interview Questions
 
 1. **What is network interception used for?**
-   - Mock APIs, test error scenarios, improve test speed, modify requests
+   <details>
+   <summary>Answer</summary>
+   Mock APIs, test error scenarios, improve test speed, modify requests/responses, monitor traffic
+   </details>
 
 2. **How do you mock an API response?**
-   - Use `page.route()` with `route.fulfill()` to return custom response
+   <details>
+   <summary>Answer</summary>
+   Use `page.route()` with `route.fulfill()` to intercept and return custom response
+   </details>
 
 3. **How do you abort a network request?**
-   - Use `route.abort()` or `route.abort('failed')` with error type
+   <details>
+   <summary>Answer</summary>
+   Use `route.abort()` or `route.abort('failed')` with error type to simulate network failure
+   </details>
 
 4. **Can you modify request headers?**
-   - Yes, in `route.continue()` with headers parameter
+   <details>
+   <summary>Answer</summary>
+   Yes, in `route.continue()` with headers parameter: `route.continue({ headers: {...} })`
+   </details>
 

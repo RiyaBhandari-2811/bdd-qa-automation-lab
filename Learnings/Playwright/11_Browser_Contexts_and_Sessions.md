@@ -195,23 +195,143 @@ export default defineConfig({
 
 **Exercise 1**: Create two browser contexts simulating two different users.
 
+<details>
+<summary>✅ Answer</summary>
+
+```javascript
+test('Multiple contexts with different users', async ({ browser }) => {
+  // Create context for user 1
+  const context1 = await browser.newContext();
+  const page1 = await context1.newPage();
+  
+  // Create context for user 2
+  const context2 = await browser.newContext();
+  const page2 = await context2.newPage();
+  
+  // User 1 login
+  await page1.goto('https://example.com/login');
+  await page1.fill('#email', 'user1@example.com');
+  await page1.fill('#password', 'password1');
+  await page1.click('button[type="submit"]');
+  
+  // User 2 login (parallel)
+  await page2.goto('https://example.com/login');
+  await page2.fill('#email', 'user2@example.com');
+  await page2.fill('#password', 'password2');
+  await page2.click('button[type="submit"]');
+  
+  // Verify both logged in
+  await expect(page1.locator('.user-name')).toContainText('User 1');
+  await expect(page2.locator('.user-name')).toContainText('User 2');
+  
+  // Cleanup
+  await context1.close();
+  await context2.close();
+});
+```
+
+</details>
+
 **Exercise 2**: Save authentication state and reuse it in multiple tests.
 
+<details>
+<summary>✅ Answer</summary>
+
+```javascript
+// First test - save auth state
+test('Save authentication state', async ({ browser }) => {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  
+  await page.goto('https://example.com/login');
+  await page.fill('#email', 'user@example.com');
+  await page.fill('#password', 'password123');
+  await page.click('button[type="submit"]');
+  
+  await page.waitForURL('**/dashboard');
+  
+  await context.storageState({ path: 'auth.json' });
+  await context.close();
+});
+
+// Subsequent tests - reuse auth
+test('Reuse saved authentication', async ({ browser }) => {
+  const context = await browser.newContext({
+    storageState: 'auth.json'
+  });
+  const page = await context.newPage();
+  
+  // Already authenticated!
+  await page.goto('https://example.com/dashboard');
+  
+  await expect(page.locator('.user-menu')).toBeVisible();
+  await context.close();
+});
+```
+
+</details>
+
 **Exercise 3**: Set custom localStorage values before navigation.
+
+<details>
+<summary>✅ Answer</summary>
+
+```javascript
+test('Set localStorage before navigation', async ({ browser }) => {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  
+  // Set localStorage before navigation
+  await context.addInitScript(() => {
+    window.localStorage.setItem('theme', 'dark');
+    window.localStorage.setItem('lang', 'fr');
+    window.localStorage.setItem('preferences', JSON.stringify({
+      notifications: true,
+      autoplay: false
+    }));
+  });
+  
+  // Navigate - localStorage values already set
+  await page.goto('https://example.com');
+  
+  // Verify localStorage values
+  const theme = await page.evaluate(() => localStorage.getItem('theme'));
+  const lang = await page.evaluate(() => localStorage.getItem('lang'));
+  
+  expect(theme).toBe('dark');
+  expect(lang).toBe('fr');
+  
+  await context.close();
+});
+```
+
+</details>
 
 ---
 
 ## 🎤 Interview Questions
 
 1. **What is a browser context?**
-   - Isolated browser session with separate cookies, storage, and cache
+   <details>
+   <summary>Answer</summary>
+   Isolated browser session with separate cookies, localStorage, sessionStorage, and cache
+   </details>
 
 2. **What's the difference between cookies and localStorage?**
-   - Cookies sent to server automatically; localStorage only on client side
+   <details>
+   <summary>Answer</summary>
+   Cookies sent to server automatically; localStorage only on client side and larger storage limit
+   </details>
 
 3. **How do you save authentication state?**
-   - Use `context.storageState({ path: 'auth.json' })` to save
+   <details>
+   <summary>Answer</summary>
+   Use `context.storageState({ path: 'auth.json' })` to save cookies and localStorage
+   </details>
 
 4. **Can you use same authentication across multiple tests?**
-   - Yes, via `storageState` in context configuration
+   <details>
+   <summary>Answer</summary>
+   Yes, create context with `{ storageState: 'auth.json' }` or use in playwright.config.js
+   </details>
 
