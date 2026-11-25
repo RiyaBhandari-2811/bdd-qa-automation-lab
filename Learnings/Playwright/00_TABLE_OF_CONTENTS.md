@@ -22,6 +22,7 @@
 13. [13_Advanced_Selectors.md](13_Advanced_Selectors.md) - Advanced XPath, role selectors, filters
 14. [14_Performance_and_Optimization.md](14_Performance_and_Optimization.md) - Performance testing, metrics
 15. [15_Custom_Fixtures.md](15_Custom_Fixtures.md) - Writing reusable fixtures, test setup
+15A. [15A_Custom_Fixtures_Deep_Dive.md](15A_Custom_Fixtures_Deep_Dive.md) - Advanced fixture patterns, dependent fixtures, lifecycle deep dive
 16. [16_API_Testing_with_Playwright.md](16_API_Testing_with_Playwright.md) - API Context, REST testing
 17. [17_Debugging_and_Tracing.md](17_Debugging_and_Tracing.md) - Debug mode, inspector, troubleshooting
 18. [18_CI_CD_Integration.md](18_CI_CD_Integration.md) - GitHub Actions, Docker, cloud services
