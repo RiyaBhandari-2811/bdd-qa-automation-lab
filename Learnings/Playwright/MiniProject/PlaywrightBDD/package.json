@@ -1,0 +1,17 @@
+{
+  "name": "notes-bdd",
+  "version": "1.0.0",
+  "description": "Simple Notes App - BDD Testing with Playwright & Cucumber",
+  "scripts": {
+    "test": "cucumber-js",
+    "test:tags": "cucumber-js --tags",
+    "test:smoke": "cucumber-js --tags '@smoke'",
+    "test:report": "cucumber-js --format html:reports/report.html && echo 'Report generated: reports/report.html'"
+  },
+  "dependencies": {
+    "@cucumber/cucumber": "^9.5.1",
+    "@playwright/test": "^1.40.1",
+    "playwright": "^1.40.1"
+  },
+  "devDependencies": {}
+}
